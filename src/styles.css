@@ -4,4 +4,7 @@ body {
     Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   background-color: #0c0c0c;
   color: #c0c0c0;
+  height: 100vh;
+  overflow: hidden;
+  width: 100%;
 }
