@@ -7,8 +7,8 @@
 
   <ItemGroup>
     <Compile Include="Types.fs" />
+    <Compile Include="Random.fs" />
     <Compile Include="Stores.fs" />
-    <Compile Include="Styles.fs" />
     <Compile Include="Components/Stage.fs" />
     <Compile Include="Components/Decoration.fs" />
     <Compile Include="Components/Npc.fs" />

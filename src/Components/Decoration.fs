@@ -4,42 +4,48 @@ open Browser.Types
 
 open Sutil
 open Sutil.Styling
+open Sutil.Attr
+
 open Types
 
-let private random = System.Random()
+let private bgDecorationPos (kind: DecorationKind) =
+    let spriteWidth = 32
 
-let private Decoration (props: IStore<Decoration>) (host: Node) =
-    let kind = props .> (fun props -> props.kind)
-
-    Html.div [
-        Bind.el (kind, (fun kind -> adoptStyleSheet (Styles.decoration kind)))
-    ]
-
-let getRandomDecoration () =
-    match random.Next(16) with
-    | 0 -> Flask0
-    | 1 -> Flask1
-    | 2 -> Flask2
-    | 3 -> Flask3
-    | 4 -> Flask4
-    | 5 -> Flask5
-    | 6 -> Pumpkin0Back
-    | 7 -> Pumpkin1Back
-    | 8 -> Pumpkin2Back
-    | 9 -> Pumpkin0Front
-    | 10 -> Pumpkin1Front
-    | 11 -> Pumpkin2Front
-    | 12 -> Lollipop
-    | 13 -> Candy0
-    | 14 -> Candy1
-    | 15 -> CandyBag
-    | _ -> Flask0
+    match kind with
+    | Flask0 -> 0
+    | Flask1 -> spriteWidth
+    | Flask2 -> spriteWidth * 2
+    | Flask3 -> spriteWidth * 3
+    | Flask4 -> spriteWidth * 4
+    | Flask5 -> spriteWidth * 5
+    | Pumpkin0Back -> spriteWidth * 6
+    | Pumpkin1Back -> spriteWidth * 7
+    | Pumpkin2Back -> spriteWidth * 8
+    | Pumpkin0Front -> spriteWidth * 9
+    | Pumpkin1Front -> spriteWidth * 10
+    | Pumpkin2Front -> spriteWidth * 11
+    | Lollipop -> spriteWidth * 12
+    | Candy0 -> spriteWidth * 13
+    | Candy1 -> spriteWidth * 14
+    | CandyBag -> spriteWidth * 15
+    |> (fun spritePos -> spritePos * -1)
 
 
-let register () =
-    WebComponent.Register(
-        "sp-decoration",
-        Decoration,
-        { pos = { x = 0; y = 0 }
-          kind = Flask0 }
-    )
+let element (props: Decoration) =
+    let kind = props.kind
+    let pos = props.pos
+
+    Html.div [ class' "decoration" ]
+    |> withStyle [
+        rule
+            "div"
+            [ Css.backgroundImageUrl "/assets/32x32_Halloween_Free.png"
+              Css.custom ("background-position", $"%i{bgDecorationPos kind}px 0px")
+              Css.backgroundRepeatNoRepeat
+              Css.height 32
+              Css.width 32
+              Css.transformScale 1.5
+              Css.positionAbsolute
+              Css.top pos.y
+              Css.left pos.x ]
+       ]
