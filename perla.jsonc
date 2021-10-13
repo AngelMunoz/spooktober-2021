@@ -5,6 +5,7 @@
     "project": "./src/App.fsproj"
   },
   "devServer": {
+    "host": "0.0.0.0",
     "liveReload": true,
     "mountDirectories": {
       "./src": "/src",
