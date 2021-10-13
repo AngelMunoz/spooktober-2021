@@ -47,10 +47,102 @@ main {
   }
 }
 
+.slime {
+  --slime-url: url("../assets/slimes/Slime_Small_Blue.png");
+  background-image: var(--slime-url);
+  background-repeat: no-repeat;
+  height: 14px;
+  width: 11px;
+  margin: 5px;
+  transform: scale(2);
+  animation-timing-function: steps(2);
+  animation-duration: 1s;
+  animation-iteration-count: infinite;
+}
+
+.player {
+  position: relative;
+}
+
+.slime__green {
+  --slime-url: url("../assets/slimes/Slime_Small_Green.png");
+}
+
+.slime__orange {
+  --slime-url: url("../assets/slimes/Slime_Small_Orange.png");
+}
+
+.slime__red {
+  --slime-url: url("../assets/slimes/Slime_Small_Red.png");
+}
+
+.slime__orange {
+  --slime-url: url("../assets/slimes/Slime_Small_Orange.png");
+}
+
+.slime__white {
+  --slime-url: url("../assets/slimes/Slime_Small_White.png");
+}
+
+.slime--up {
+  animation-name: slimeUp;
+}
+.slime--down {
+  animation-name: slimeDown;
+}
+
+.slime--left {
+  animation-name: slimeLeft;
+}
+
+.slime--right {
+  animation-name: slimeRight;
+}
+
+.slime--moving {
+  animation-duration: 0.2s;
+}
+
 .decoration {
   animation: fadeInOut 5s linear infinite;
   z-index: 1;
   cursor: not-allowed;
+}
+
+@keyframes slimeDown {
+  0% {
+    background-position: -10px -5px;
+  }
+  100% {
+    background-position: -74px -5px;
+  }
+}
+
+@keyframes slimeUp {
+  0% {
+    background-position: -10px -69px;
+  }
+  100% {
+    background-position: -74px -69px;
+  }
+}
+
+@keyframes slimeLeft {
+  0% {
+    background-position: -10px -101px;
+  }
+  100% {
+    background-position: -74px -101px;
+  }
+}
+
+@keyframes slimeRight {
+  0% {
+    background-position: -10px -37px;
+  }
+  100% {
+    background-position: -74px -37px;
+  }
 }
 
 @keyframes fadeInOut {
