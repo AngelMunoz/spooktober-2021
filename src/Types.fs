@@ -38,3 +38,9 @@ type DecorationKind =
 
 
 type Decoration = { pos: Pos; kind: DecorationKind }
+
+type Movement =
+    | Up
+    | Down
+    | Left
+    | Right

@@ -9,10 +9,11 @@
     <Compile Include="Types.fs" />
     <Compile Include="Random.fs" />
     <Compile Include="Stores.fs" />
-    <Compile Include="Components/Stage.fs" />
     <Compile Include="Components/Decoration.fs" />
+    <Compile Include="Components/Slime.fs" />
     <Compile Include="Components/Npc.fs" />
     <Compile Include="Components/Player.fs" />
+    <Compile Include="Components/Stage.fs" />
     <Compile Include="App.fs" />
     <Compile Include="Main.fs" />
   </ItemGroup>

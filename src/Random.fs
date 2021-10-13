@@ -5,26 +5,26 @@ open System
 open Types
 open Browser.Dom
 
-let private maxY () = window.innerHeight
-let private maxX () = window.innerWidth
+let private maxY = window.innerHeight
+let private maxX = window.innerWidth
 
 let RNG = Random()
 
 let getHeaderPosition () =
-    { x = RNG.Next(0, maxX () - 32. |> int)
+    { x = RNG.Next(0, maxX - 32. |> int)
       y = RNG.Next(0, 100 - 32) }
 
 let getFooterPosition () =
-    { x = RNG.Next(0, maxX () |> int)
-      y = RNG.Next(maxY () - 100. |> int, maxY () - 32. |> int) }
+    { x = RNG.Next(0, maxX |> int)
+      y = RNG.Next(maxY - 100. |> int, maxY - 32. |> int) }
 
 let getLeftPosition () =
     { x = RNG.Next(0, 64 |> int)
-      y = RNG.Next(0, maxY () - 32. |> int) }
+      y = RNG.Next(0, maxY - 32. |> int) }
 
 let getRightPosition () =
-    { x = RNG.Next(maxX () - 64. |> int, maxX () |> int)
-      y = RNG.Next(0, maxY () - 32. |> int) }
+    { x = RNG.Next(maxX - 64. |> int, maxX |> int)
+      y = RNG.Next(0, maxY - 32. |> int) }
 
 let getPosition () =
     match RNG.Next(0, 5) with
