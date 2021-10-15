@@ -103,6 +103,16 @@ main {
   animation-duration: 0.2s;
 }
 
+.slime--slide {
+  --slime-url: url("../assets/slimes/Slime_Small_Green.png");
+}
+.slime--attack {
+  --slime-url: url("../assets/slimes/Slime_Small_Red.png");
+}
+.slime--defend {
+  --slime-url: url("../assets/slimes/Slime_Small_White.png");
+}
+
 .decoration {
   animation: fadeInOut 5s linear infinite;
   z-index: 1;
