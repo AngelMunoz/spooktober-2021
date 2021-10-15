@@ -44,3 +44,8 @@ type Movement =
     | Down
     | Left
     | Right
+
+type PlayerAction =
+    | Attack
+    | Defend
+    | Slide

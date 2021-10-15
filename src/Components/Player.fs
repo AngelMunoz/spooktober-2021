@@ -24,23 +24,35 @@ let element () =
             | Some movement -> Moving movement)
 
     let playerPos =
-        status
-        .> (fun status ->
+        (PlayerActions, status) ||> Observable.zip
+        .> (fun (action, status) ->
             let dx, dy =
                 match status with
                 | Idle -> x, y
-                | Moving Down -> x, y + 10
-                | Moving Up -> x, y - 10
-                | Moving Left -> x - 10, y
-                | Moving Right -> x + 10, y
+                | Moving Down ->
+                    match action with
+                    | Some Slide -> x, y + 30
+                    | _ -> x, y + 10
+                | Moving Up ->
+                    match action with
+                    | Some Slide -> x, y - 30
+                    | _ -> x, y - 10
+                | Moving Left ->
+                    match action with
+                    | Some Slide -> x - 30, y
+                    | _ -> x - 10, y
+                | Moving Right ->
+                    match action with
+                    | Some Slide -> x + 30, y
+                    | _ -> x + 10, y
 
             x <- dx
             y <- dy
             $"top: {y}px; left: {x}px;")
 
     let classes =
-        status
-        .> (fun status ->
+        (PlayerActions, status) ||> Observable.zip
+        .> (fun (action, status) ->
             let status =
                 match status with
                 | Idle -> "slime--down"
@@ -49,7 +61,14 @@ let element () =
                 | Moving Left -> "slime--left slime--moving"
                 | Moving Right -> "slime--right slime--moving"
 
-            $"player slime {status}")
+            let actions =
+                match action with
+                | Some Slide -> "slime--slide"
+                | Some Attack -> "slime--attack"
+                | Some Defend -> "slime--defend"
+                | None -> ""
+
+            $"player slime {status} {actions}")
 
 
     Html.div [
