@@ -24,8 +24,9 @@ let element (props: IStore<_>) =
         | "d" -> PlayerMovement <~ Some Right
         | key ->
             PlayerMovement <~ None
+
             match key with
-            | "Meta"
+            | "Shift"
             | "j" -> PlayerActions <~ Some Attack
             | "Control"
             | "l" -> PlayerActions <~ Some Defend
@@ -38,8 +39,8 @@ let element (props: IStore<_>) =
         Fable.Core.JS.console.log (event.key)
 
         match event.key with
-        | "Meta"
-        | "j" 
+        | "Shift"
+        | "j"
         | "Control"
         | "l"
         | "Alt"
