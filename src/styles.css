@@ -105,12 +105,42 @@ main {
 
 .slime--slide {
   --slime-url: url("../assets/slimes/Slime_Small_Green.png");
+  --expansive-aura-color: rgb(173, 255, 173);
 }
+
 .slime--attack {
   --slime-url: url("../assets/slimes/Slime_Small_Red.png");
+  --expansive-aura-color: rgb(255, 89, 89);
 }
+
+.slime--attack::before,
+.slime--slide::before,
+.slime--defend::before {
+  position: relative;
+  content: "";
+  top: 7.5px;
+  left: 6px;
+  animation-name: expansive;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+}
+.slime--attack::before {
+  animation-duration: 0.2s;
+}
+
+.slime--slide::before {
+  animation-duration: 0.1s;
+  animation-direction: alternate-reverse;
+}
+
+.slime--defend::before {
+  animation-duration: 1s;
+  animation-direction: alternate;
+}
+
 .slime--defend {
   --slime-url: url("../assets/slimes/Slime_Small_White.png");
+  --expansive-aura-color: rgb(224, 224, 224);
 }
 
 .decoration {
@@ -168,5 +198,14 @@ main {
   100% {
     opacity: 0;
     transform: scale(1);
+  }
+}
+
+@keyframes expansive {
+  from {
+    box-shadow: 0px 0px 15px 0px var(--expansive-aura-color);
+  }
+  to {
+    box-shadow: 0px 0px 15px 8px var(--expansive-aura-color);
   }
 }
