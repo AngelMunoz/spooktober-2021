@@ -60,8 +60,13 @@ main {
   animation-iteration-count: infinite;
 }
 
-.player {
+.player,
+.npc {
   position: relative;
+}
+
+.player {
+  z-index: 2;
 }
 
 .slime__green {
@@ -74,10 +79,6 @@ main {
 
 .slime__red {
   --slime-url: url("../assets/slimes/Slime_Small_Red.png");
-}
-
-.slime__orange {
-  --slime-url: url("../assets/slimes/Slime_Small_Orange.png");
 }
 
 .slime__white {
@@ -113,9 +114,20 @@ main {
   --expansive-aura-color: rgb(255, 89, 89);
 }
 
+.slime--defend {
+  --slime-url: url("../assets/slimes/Slime_Small_White.png");
+  --expansive-aura-color: rgb(224, 224, 224);
+}
+
+.slime--heal {
+  --slime-url: url("../assets/slimes/Slime_Small_Green.png");
+  --expansive-aura-color: rgb(55, 145, 248);
+}
+
 .slime--attack::before,
 .slime--slide::before,
-.slime--defend::before {
+.slime--defend::before,
+.slime--heal::before {
   position: relative;
   content: "";
   top: 7.5px;
@@ -124,6 +136,7 @@ main {
   animation-iteration-count: infinite;
   animation-timing-function: linear;
 }
+
 .slime--attack::before {
   animation-duration: 0.2s;
 }
@@ -133,20 +146,21 @@ main {
   animation-direction: alternate-reverse;
 }
 
-.slime--defend::before {
+.slime--defend::before,
+.slime--heal::before {
   animation-duration: 1s;
   animation-direction: alternate;
-}
-
-.slime--defend {
-  --slime-url: url("../assets/slimes/Slime_Small_White.png");
-  --expansive-aura-color: rgb(224, 224, 224);
 }
 
 .decoration {
   animation: fadeInOut 5s linear infinite;
   z-index: 1;
   cursor: not-allowed;
+  background-image: url("../assets/32x32_Halloween_Free.png");
+  height: 32px;
+  width: 32px;
+  transform: scale(1.5);
+  position: absolute;
 }
 
 @keyframes slimeDown {
