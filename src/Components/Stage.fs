@@ -61,4 +61,6 @@ let element (props: IStore<_>) =
         on "keydown" tryMovePlayer [ PreventDefault ]
         on "keyup" tryTrackAction [ PreventDefault ]
         Player.element ()
+        Bind.each (Enemies, Store.make >> Npc.element)
+        Bind.each (Allies, Store.make >> Npc.element)
     ]
