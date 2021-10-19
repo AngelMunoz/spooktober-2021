@@ -3,7 +3,7 @@ module Components.Decoration
 open Browser.Types
 
 open Sutil
-open Sutil.Styling
+open Sutil.DOM
 open Sutil.Attr
 
 open Types
@@ -31,21 +31,15 @@ let private bgDecorationPos (kind: DecorationKind) =
     |> (fun spritePos -> spritePos * -1)
 
 
-let element (props: Decoration) =
-    let kind = props.kind
-    let pos = props.pos
+let element (props: IStore<Decoration>) =
+    let kind = props .> (fun p -> p.kind)
+    let pos = props .> (fun p -> p.pos)
 
-    Html.div [ class' "decoration" ]
-    |> withStyle [
-        rule
-            "div"
-            [ Css.backgroundImageUrl "/assets/32x32_Halloween_Free.png"
-              Css.custom ("background-position", $"%i{bgDecorationPos kind}px 0px")
-              Css.backgroundRepeatNoRepeat
-              Css.height 32
-              Css.width 32
-              Css.transformScale 1.5
-              Css.positionAbsolute
-              Css.top pos.y
-              Css.left pos.x ]
-       ]
+    Html.div [
+        disposeOnUnmount [ props ]
+        class' "decoration"
+        Bind.el2 kind pos
+        <| fun (kind, pos) ->
+            $"top: {pos.y}px; left: {pos.x}px;background-position: %i{bgDecorationPos kind}px 0px "
+            |> Attr.style
+    ]

@@ -45,7 +45,7 @@ let view () =
 
     Html.app [
         for decoration in decorations do
-            Bind.el (decoration, Decoration.element)
+            Bind.el (decoration, Store.make >> Decoration.element)
         Html.main [ Stage.element (StageStore) ]
         Html.footer []
         on "touchstart" onTouchStart []
