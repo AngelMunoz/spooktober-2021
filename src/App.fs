@@ -13,7 +13,7 @@ open Browser.Types
 
 let view () =
     let decorations =
-        [ for _ in 0 .. Random.RNG.Next(5, 21) do
+        [ for _ in 0 .. Random.RNG.Next(5, 51) do
               Store.make (
                   { pos = Random.getPosition ()
                     kind = Random.getDecoration () }
@@ -31,25 +31,10 @@ let view () =
                 (Random.RNG.Next(4000, 5001))
             |> ignore)
 
-    let onTouchStart (event: Event) =
-        let event = (event :?> TouchEvent)
-        Fable.Core.JS.console.log (event)
-
-    let onTouchEnd (event: Event) =
-        let event = (event :?> TouchEvent)
-        Fable.Core.JS.console.log (event)
-
-    let onTouchMove (event: Event) =
-        let event = (event :?> TouchEvent)
-        Fable.Core.JS.console.log (event)
-
     Html.app [
         for decoration in decorations do
             Bind.el (decoration, Store.make >> Decoration.element)
         Html.main [ Stage.element (StageStore) ]
-        Html.footer []
-        on "touchstart" onTouchStart []
-        on "touchend" onTouchEnd []
-        on "touchmove" onTouchMove []
+        Html.footer [ VirtualPad.element () ]
 
         ]

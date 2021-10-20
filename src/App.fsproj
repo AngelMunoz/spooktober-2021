@@ -14,6 +14,7 @@
     <Compile Include="Components/Slime.fs" />
     <Compile Include="Components/Npc.fs" />
     <Compile Include="Components/Player.fs" />
+    <Compile Include="Components/VirtualPad.fs" />
     <Compile Include="Components/Stage.fs" />
     <Compile Include="App.fs" />
     <Compile Include="Main.fs" />

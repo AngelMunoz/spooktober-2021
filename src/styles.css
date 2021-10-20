@@ -18,6 +18,10 @@ main {
   margin: auto;
 }
 
+footer {
+  margin-bottom: auto;
+}
+
 .pos-stage {
   display: flex;
   margin: auto;
@@ -161,6 +165,65 @@ main {
   width: 32px;
   transform: scale(1.5);
   position: absolute;
+}
+
+.virtual-pad {
+  display: flex;
+  justify-content: space-between;
+}
+
+.direction-pad {
+  z-index: 2;
+}
+
+.action-pad {
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.action-pad :nth-child(1) {
+  position: relative;
+  left: -10%;
+  top: 50%;
+  width: 42px;
+}
+.action-pad :nth-child(2) {
+  position: relative;
+  width: 42px;
+}
+.action-pad :nth-child(3) {
+  position: relative;
+  right: -10%;
+  top: -50%;
+  width: 42px;
+}
+
+.direction-pad :nth-child(1) {
+  position: relative;
+  top: -25%;
+  left: 25%;
+  width: 42px;
+}
+.direction-pad :nth-child(2) {
+  position: relative;
+  top: 50%;
+  left: -24%;
+  width: 42px;
+}
+
+.direction-pad :nth-child(3) {
+  position: relative;
+  top: 50%;
+  right: 2%;
+  width: 42px;
+}
+
+.direction-pad :nth-child(4) {
+  position: relative;
+  bottom: -125%;
+  left: -50%;
+  width: 42px;
 }
 
 @keyframes slimeDown {
