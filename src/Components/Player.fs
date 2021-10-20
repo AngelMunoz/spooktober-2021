@@ -26,6 +26,8 @@ let element () =
     let playerPos =
         (PlayerActions, status) ||> Observable.zip
         .> (fun (action, status) ->
+            let maxXY = Position.getMaxXY ()
+
             let dx, dy =
                 match status with
                 | Idle -> x, y
@@ -46,6 +48,7 @@ let element () =
                     | Some Slide -> x + 30, y
                     | _ -> x + 10, y
 
+            let (dx, dy) = Position.getClampPos (dx, dy) maxXY
             x <- dx
             y <- dy
             $"top: {y}px; left: {x}px;")

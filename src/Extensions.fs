@@ -15,3 +15,24 @@ module Timing =
 
         { new IDisposable with
             override _.Dispose() : unit = Fable.Core.JS.clearTimeout id }
+
+
+module Position =
+    let getMaxXY () =
+        let stage =
+            Browser.Dom.document.querySelector (".pos-stage")
+
+        ((stage.clientWidth |> int) - 22, (stage.clientHeight |> int) - 26)
+
+    let getClampPos (x: int, y: int) (maxX: int, maxY: int) =
+        let x =
+            if x <= 0 then 0
+            elif x >= maxX then maxX
+            else x
+
+        let y =
+            if y <= 0 then 0
+            elif y >= maxY then maxY
+            else y
+
+        (x, y)

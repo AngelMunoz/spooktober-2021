@@ -16,11 +16,15 @@ let private randomMovement (npc: IStore<Npc>) =
                -1)
 
     let updatePosition (npc: Npc) =
-        let x = randomPosNegNumber ()
-        let y = randomPosNegNumber ()
+        let maxBoundary = Position.getMaxXY ()
 
-        { npc with
-              pos = { x = npc.pos.x + x; y = npc.pos.y + y } }
+        let randomPos =
+            npc.pos.x + randomPosNegNumber (), npc.pos.y + randomPosNegNumber ()
+
+        let (x, y) =
+            Position.getClampPos randomPos maxBoundary
+
+        { npc with pos = { x = x; y = y } }
 
     npc <~= updatePosition
 
