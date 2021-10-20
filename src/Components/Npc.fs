@@ -7,8 +7,27 @@ open Browser.Types
 open Types
 open Sutil.Attr
 
+let private randomMovement (npc: IStore<Npc>) =
+    let randomPosNegNumber () =
+        (Random.RNG.Next(10)
+         * if Random.RNG.Next(0, 2) = 0 then
+               1
+           else
+               -1)
+
+    let updatePosition (npc: Npc) =
+        let x = randomPosNegNumber ()
+        let y = randomPosNegNumber ()
+
+        { npc with
+              pos = { x = npc.pos.x + x; y = npc.pos.y + y } }
+
+    npc <~= updatePosition
+
 let private setAttackInterval (el: HTMLElement) (store: IStore<Npc>) =
     fun () ->
+        randomMovement store
+
         CustomDispatch.toCustomEvent [
             Bubbles true
             Composed true
