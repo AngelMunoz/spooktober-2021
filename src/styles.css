@@ -24,11 +24,21 @@ footer {
 
 .pos-stage {
   display: flex;
+  flex-direction: column;
+  position: relative;
   margin: auto;
   height: 240px;
   width: 320px;
   z-index: 2;
   background-color: #1c1c1c;
+}
+
+.idle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  align-content: center;
+  margin: auto;
 }
 
 @media all and (min-width: 768px) {
@@ -42,12 +52,6 @@ footer {
   .pos-stage {
     height: 600px;
     width: 800px;
-  }
-}
-
-@media all and (min-width: 1440px) {
-  .pos-stage {
-    transform: scale(1.5);
   }
 }
 
@@ -66,7 +70,8 @@ footer {
 
 .player,
 .npc {
-  position: relative;
+  display: inline-flex;
+  position: absolute;
 }
 
 .player {

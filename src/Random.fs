@@ -53,3 +53,20 @@ let getDecoration () =
     | 14 -> Candy1
     | 15 -> CandyBag
     | _ -> Flask0
+
+let getRandomNpcs amount kind =
+    let life =
+        match kind with
+        | Enemy -> amount * 100 |> Some
+        | Ally -> amount * 50 |> Some
+        | Neutral -> None
+
+    let maxX, maxY = Position.getMaxXY ()
+    Fable.Core.JS.console.log (maxX, maxY)
+
+    [ for _ in 0 .. amount do
+          { pos =
+                { x = RNG.Next(40, maxX)
+                  y = RNG.Next(40, maxY) }
+            kind = kind
+            life = life } ]

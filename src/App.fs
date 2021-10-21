@@ -34,7 +34,7 @@ let view () =
     Html.app [
         for decoration in decorations do
             Bind.el (decoration, Store.make >> Decoration.element)
-        Html.main [ Stage.element (StageStore) ]
+        Html.main [ Stage.element StageStore ]
         Html.footer [ VirtualPad.element () ]
 
         ]

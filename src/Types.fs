@@ -14,8 +14,14 @@ type Npc =
       pos: Pos
       kind: NpcKind }
 
+type StageState =
+    | Idle
+    | GameOver
+    | Wave of int
+
 type Player = { life: int; mana: int; pos: Pos }
 
+type Stage = { state: StageState; points: int }
 
 [<StringEnum>]
 type DecorationKind =

@@ -16,13 +16,14 @@ let private randomMovement (npc: IStore<Npc>) =
                -1)
 
     let updatePosition (npc: Npc) =
-        let maxBoundary = Position.getMaxXY ()
+        let (maxX, maxY) = Position.getMaxXY ()
 
         let randomPos =
             npc.pos.x + randomPosNegNumber (), npc.pos.y + randomPosNegNumber ()
 
+
         let (x, y) =
-            Position.getClampPos randomPos maxBoundary
+            Position.getClampPos randomPos (maxX, maxY)
 
         { npc with pos = { x = x; y = y } }
 
@@ -49,6 +50,8 @@ let private setAttackInterval (el: HTMLElement) (store: IStore<Npc>) =
 
 let private setHealInterval (el: HTMLElement) (store: IStore<Npc>) =
     fun () ->
+        randomMovement store
+
         CustomDispatch.toCustomEvent [
             Bubbles true
             Composed true

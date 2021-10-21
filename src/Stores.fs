@@ -3,33 +3,58 @@ module Stores
 open Sutil
 open Types
 
-let StageStore = Store.make ()
+let StageStore =
+    Store.make ({ state = Idle; points = 0 })
 
-let Enemies =
-    Store.make [
-        { pos = { x = 100; y = 100 }
-          kind = Enemy
-          life = Some 100 }
-        { pos = { x = 150; y = 150 }
-          kind = Enemy
-          life = Some 100 }
-        { pos = { x = 50; y = 50 }
-          kind = Enemy
-          life = Some 100 }
-        { pos = { x = 250; y = 250 }
-          kind = Enemy
-          life = Some 100 }
-    ]
+let Enemies = Store.make []
 
-let Allies =
-    Store.make [
-        { pos = { x = 200; y = 75 }
-          kind = Ally
-          life = Some 100 }
-        { pos = { x = 150; y = 300 }
-          kind = Ally
-          life = Some 100 }
-    ]
+let Allies = Store.make []
 
 let PlayerMovement: IStore<Movement option> = Store.make None
 let PlayerActions: IStore<PlayerAction option> = Store.make None
+
+
+module Game =
+    let StartWave () =
+        let state = StageStore |-> (fun s -> s.state)
+
+        match state with
+        | Wave number ->
+            let enemies =
+                Random.getRandomNpcs (number + 1 * 5) Enemy
+
+            let allies =
+                Random.getRandomNpcs (number + 1 / 2) Ally
+
+            Enemies <~ enemies
+            Allies <~ allies
+
+            StageStore
+            <~= (fun store -> { store with state = Wave(number + 1) })
+        | Idle
+        | GameOver ->
+            let enemies = Random.getRandomNpcs (1 * 5) Enemy
+
+            let allies = Random.getRandomNpcs (1 / 2) Ally
+            Enemies <~ enemies
+            Allies <~ allies
+
+            StageStore
+            <~= (fun store ->
+                { store with
+                      state = Wave 1
+                      points = 0 })
+
+    let private cleanNpcs () =
+        Enemies <~ []
+        Allies <~ []
+
+    let GameOver () =
+        StageStore
+        <~= (fun store -> { store with state = GameOver })
+
+    let EndGame () =
+        cleanNpcs ()
+
+        StageStore
+        <~= (fun store -> { store with state = Idle; points = 0 })

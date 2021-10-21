@@ -3,6 +3,7 @@ module Extensions
 
 open System
 
+[<RequireQualifiedAccess>]
 module Timing =
     let interval time cb =
         let id = Fable.Core.JS.setInterval cb time
@@ -17,7 +18,18 @@ module Timing =
             override _.Dispose() : unit = Fable.Core.JS.clearTimeout id }
 
 
+[<RequireQualifiedAccess>]
 module Position =
+
+    let distanceBetween (x1: int, y1: int) (x2: int, y2: int) =
+        let d1 = Math.Pow((x2 - x1) |> float, 2.)
+        let d2 = Math.Pow((y2 - y1) |> float, 2.)
+        Math.Sqrt(d1 + d2) |> int
+
+
+    let isWithinDistance origin maxDistance position =
+        (distanceBetween origin position) <= maxDistance
+
     let getMaxXY () =
         let stage =
             Browser.Dom.document.querySelector (".pos-stage")
