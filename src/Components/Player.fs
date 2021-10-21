@@ -12,9 +12,7 @@ type PlayerStatus =
     | Idle
     | Moving of Movement
 
-let element () =
-    let mutable x = 0
-    let mutable y = 0
+let element (player: IStore<Player>) =
 
     let status =
         PlayerMovement
@@ -27,6 +25,8 @@ let element () =
         (PlayerActions, status) ||> Observable.zip
         .> (fun (action, status) ->
             let maxXY = Position.getMaxXY ()
+            let x = player |-> (fun player -> player.pos.x)
+            let y = player |-> (fun player -> player.pos.y)
 
             let dx, dy =
                 match status with
@@ -49,9 +49,11 @@ let element () =
                     | _ -> x + 10, y
 
             let (dx, dy) = Position.getClampPos (dx, dy) maxXY
-            x <- dx
-            y <- dy
-            $"top: {y}px; left: {x}px;")
+
+            player
+            <~= (fun player -> { player with pos = { x = dx; y = dy } })
+
+            $"left: {dx}px; top: {dy}px;")
 
     let classes =
         (PlayerActions, status) ||> Observable.zip
@@ -73,8 +75,14 @@ let element () =
 
             $"player slime {status} {actions}")
 
+    let statusSub =
+        PlayerActions.Subscribe
+            (fun action ->
+                player
+                <~= (fun player -> { player with action = action }))
 
     Html.div [
+        disposeOnUnmount [ statusSub ]
         Bind.attr ("class", classes)
         Bind.attr ("style", playerPos)
     ]
