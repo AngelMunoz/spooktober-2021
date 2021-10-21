@@ -19,7 +19,7 @@ type StageState =
     | GameOver
     | Wave of int
 
-type Player = { life: int; mana: int; pos: Pos }
+
 
 type Stage = { state: StageState; points: int }
 
@@ -55,3 +55,8 @@ type PlayerAction =
     | Attack
     | Defend
     | Slide
+
+type Player =
+    { life: int
+      action: PlayerAction option
+      pos: Pos }
