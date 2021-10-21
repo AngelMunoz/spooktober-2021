@@ -1,12 +1,15 @@
 module Components.Stage
 
-open Sutil
-open Sutil.Attr
+open Fable.Core
 open Browser.Types
+
+open Sutil
+open Sutil.DOM
+open Sutil.Attr
+
 open Components
 open Stores
 open Types
-open Fable.Core
 
 let private tryMovePlayer (event: Event) =
     let event = event :?> KeyboardEvent
@@ -74,14 +77,18 @@ let idleTemplate props =
     ]
 
 let gameOverTemplate props =
-    Html.parent "article" [ class' "pos-stage game-over" ]
+    Html.app [
+        class' "pos-stage game-over"
+        Html.text "Game Over"
+    ]
 
-let gameTemplate props =
+let gameTemplate player =
+
 
     Html.app [
         on "keydown" tryMovePlayer [ PreventDefault ]
         on "keyup" tryTrackAction [ PreventDefault ]
-        Player.element ()
+        Player.element player
         Bind.each (Enemies, Store.make >> Npc.element)
         Bind.each (Allies, Store.make >> Npc.element)
     ]
@@ -91,15 +98,100 @@ let element (props: IStore<Stage>) =
 
     let stageState = props .> (fun s -> s.state)
 
+    let player =
+        Store.make
+            { life = 1000
+              action = None
+              pos = { x = 0; y = 0 } }
+
+    let lifeSub =
+        player.Subscribe(fun player -> if player.life <= 0 then Game.GameOver())
+
+    let actionMonitor =
+        (player .> (fun p -> p.action, p.pos))
+        |> Observable.subscribe
+            (fun (action, pos) ->
+                let playerPos = (pos.x, pos.y)
+
+                match action with
+                | Some Attack ->
+                    Enemies
+                    <~= (fun enemies ->
+                        enemies
+                        |> List.map
+                            (fun npc ->
+                                let npcPos = (npc.pos.x, npc.pos.y)
+
+                                if Position.isWithinDistance playerPos 10 npcPos then
+                                    { npc with
+                                          life = npc.life |> Option.map (fun life -> life - 100) }
+                                else
+                                    npc)
+                        |> List.filter (fun npc -> (npc.life |> Option.defaultValue 0) > 0))
+                | _ -> ())
+
+    let damagePlayer (e: Event) =
+        let e = (e :?> CustomEvent<{| position: Pos |}>)
+
+        player
+        <~= (fun player ->
+            match e.detail with
+            | Some npcPos ->
+                let playerPos = (player.pos.x, player.pos.y)
+                let npcPos = (npcPos.position.x, npcPos.position.y)
+
+                if Position.isWithinDistance playerPos 10 npcPos then
+                    let damage =
+                        match player.action with
+                        | Some Defend -> 100 - 50
+                        | Some Slide -> 100 - 10
+                        | _ -> 100
+
+                    { player with
+                          life = player.life - damage }
+                else
+                    player
+            | None -> player)
+
+    let healPlayer (e: Event) =
+        let e = (e :?> CustomEvent<{| position: Pos |}>)
+
+        player
+        <~= (fun player ->
+            match e.detail with
+            | Some npcPos ->
+                let playerPos = (player.pos.x, player.pos.y)
+                let npcPos = (npcPos.position.x, npcPos.position.y)
+
+                if Position.isWithinDistance playerPos 15 npcPos then
+                    let heal =
+                        match player.action with
+                        | Some Defend -> 100 + 25
+                        | Some Slide -> 100 - 25
+                        | _ -> 100
+
+                    { player with
+                          life = player.life + heal }
+                else
+                    player
+            | None -> player)
+
     Html.article [
+        disposeOnUnmount [
+            player
+            lifeSub
+            actionMonitor
+        ]
         Attr.tabIndex 0
         class' "pos-stage"
+        on "on-npc-attack" damagePlayer []
+        on "on-npc-heal" healPlayer []
         Bind.el (
             stageState,
             fun state ->
                 match state with
                 | Idle -> idleTemplate props
                 | GameOver -> gameOverTemplate props
-                | Wave _ -> gameTemplate props
+                | Wave _ -> gameTemplate player
         )
     ]
