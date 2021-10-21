@@ -13,7 +13,6 @@ let Allies = Store.make []
 let PlayerMovement: IStore<Movement option> = Store.make None
 let PlayerActions: IStore<PlayerAction option> = Store.make None
 
-
 module Game =
     let StartWave () =
         let state = StageStore |-> (fun s -> s.state)
