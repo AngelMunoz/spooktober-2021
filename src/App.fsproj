@@ -21,8 +21,8 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Sutil" Version="1.0.0-*" />
-    <PackageReference Include="Fable.Browser.Dom" Version="2.*" />
-    <PackageReference Include="Fable.Browser.Event" Version="1.*" />
+    <PackageReference Include="Fable.Browser.Dom" Version="2.6.0" />
+    <PackageReference Include="Fable.Browser.Event" Version="1.4.6" />
   </ItemGroup>
 
 </Project>
