@@ -4,7 +4,11 @@ open Sutil
 open Types
 
 let StageStore =
-    Store.make ({ state = Idle; points = 0 })
+    Store.make (
+        { state = Start
+          points = 0
+          maxLife = 1000 }
+    )
 
 let Enemies = Store.make []
 
@@ -14,39 +18,49 @@ let PlayerMovement: IStore<Movement option> = Store.make None
 let PlayerActions: IStore<PlayerAction option> = Store.make None
 
 module Game =
-    let StartWave () =
-        let state = StageStore |-> (fun s -> s.state)
-
-        match state with
-        | Wave number ->
-            let enemies =
-                Random.getRandomNpcs (number + 1 * 5) Enemy
-
-            let allies =
-                Random.getRandomNpcs (number + 1 / 2) Ally
-
-            Enemies <~ enemies
-            Allies <~ allies
-
-            StageStore
-            <~= (fun store -> { store with state = Wave(number + 1) })
-        | Idle
-        | GameOver ->
-            let enemies = Random.getRandomNpcs (1 * 5) Enemy
-
-            let allies = Random.getRandomNpcs (1 / 2) Ally
-            Enemies <~ enemies
-            Allies <~ allies
-
-            StageStore
-            <~= (fun store ->
-                { store with
-                      state = Wave 1
-                      points = 0 })
-
     let private cleanNpcs () =
         Enemies <~ []
         Allies <~ []
+
+    let StartWave (wave: int) =
+        let state = StageStore |-> (fun s -> s.state)
+
+        match state with
+        | InterWave _ -> cleanNpcs ()
+        | Start
+        | Wave _ ->
+            let enemies =
+                Random.getRandomNpcs (wave + 1 * 5) Enemy
+
+            let allies = Random.getRandomNpcs (wave + 1 / 2) Ally
+
+            Enemies <~ enemies
+            Allies <~ allies
+
+            StageStore
+            <~= (fun store -> { store with state = Wave(wave + 1) })
+        | GameOver -> cleanNpcs ()
+
+    let NextWave wave =
+        let enemies =
+            Random.getRandomNpcs (wave + 1 * 5) Enemy
+
+        let allies = Random.getRandomNpcs (wave + 1 / 2) Ally
+
+        Enemies <~ enemies
+        Allies <~ allies
+
+        StageStore
+        <~= (fun store -> { store with state = Wave(wave + 1) })
+
+    let SetStart () =
+        StageStore
+        <~= (fun store -> { store with state = Start })
+
+    let SetInterwave wave =
+        StageStore
+        <~= (fun store -> { store with state = InterWave wave })
+
 
     let GameOver () =
         StageStore
@@ -56,4 +70,4 @@ module Game =
         cleanNpcs ()
 
         StageStore
-        <~= (fun store -> { store with state = Idle; points = 0 })
+        <~= (fun store -> { store with state = Start; points = 0 })

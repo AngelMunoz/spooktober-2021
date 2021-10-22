@@ -67,9 +67,13 @@ let private setHealInterval (el: HTMLElement) (store: IStore<Npc>) =
         Fable.Core.JS.setTimeout (fun _ -> el.classList.remove ("slime--heal")) 1000
         |> ignore
 
-let element (props: IStore<Npc>) =
+let element maxLife (props: IStore<Npc>) =
     let position = props .> (fun p -> p.pos)
     let kind = props .> (fun p -> p.kind)
+
+    let life =
+        props .> (fun p -> p.life) |> Observable.choose id
+
     let disposables = ResizeArray<IDisposable>()
     let fnInterval = Random.RNG.Next(500, 2001)
 
@@ -108,5 +112,5 @@ let element (props: IStore<Npc>) =
                 $"top: {position.y}px; left: {position.x}px"
                 |> Attr.style
         )
-
-        ]
+        Healthbar.element maxLife life
+    ]

@@ -15,13 +15,17 @@ type Npc =
       kind: NpcKind }
 
 type StageState =
-    | Idle
+    | InterWave of int
+    | Start
     | GameOver
     | Wave of int
 
 
 
-type Stage = { state: StageState; points: int }
+type Stage =
+    { state: StageState
+      points: int
+      maxLife: int }
 
 [<StringEnum>]
 type DecorationKind =

@@ -12,6 +12,7 @@
     <Compile Include="Stores.fs" />
     <Compile Include="Components/Decoration.fs" />
     <Compile Include="Components/Slime.fs" />
+    <Compile Include="Components/Healthbar.fs" />
     <Compile Include="Components/Npc.fs" />
     <Compile Include="Components/Player.fs" />
     <Compile Include="Components/VirtualPad.fs" />

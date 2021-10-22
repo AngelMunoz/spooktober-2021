@@ -12,7 +12,8 @@ type PlayerStatus =
     | Idle
     | Moving of Movement
 
-let element (player: IStore<Player>) =
+let element maxLife (player: IStore<Player>) =
+    let life = player .> (fun player -> player.life)
 
     let status =
         PlayerMovement
@@ -85,4 +86,5 @@ let element (player: IStore<Player>) =
         disposeOnUnmount [ statusSub ]
         Bind.attr ("class", classes)
         Bind.attr ("style", playerPos)
+        Healthbar.element maxLife life
     ]
