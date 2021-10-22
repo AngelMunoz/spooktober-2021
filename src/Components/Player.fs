@@ -8,11 +8,13 @@ open Types
 open Stores
 open Sutil.DOM
 
-type PlayerStatus =
-    | Idle
-    | Moving of Movement
+let element maxLife (player: Player) =
+    let player = Store.make player
 
-let element maxLife (player: IStore<Player>) =
+    let position =
+        player
+        .> (fun player -> $"left: {player.pos.x}px; top: {player.pos.y}px;")
+
     let life = player .> (fun player -> player.life)
 
     let status =
@@ -21,40 +23,6 @@ let element maxLife (player: IStore<Player>) =
             match movement with
             | None -> Idle
             | Some movement -> Moving movement)
-
-    let playerPos =
-        (PlayerActions, status) ||> Observable.zip
-        .> (fun (action, status) ->
-            let maxXY = Position.getMaxXY ()
-            let x = player |-> (fun player -> player.pos.x)
-            let y = player |-> (fun player -> player.pos.y)
-
-            let dx, dy =
-                match status with
-                | Idle -> x, y
-                | Moving Down ->
-                    match action with
-                    | Some Slide -> x, y + 30
-                    | _ -> x, y + 10
-                | Moving Up ->
-                    match action with
-                    | Some Slide -> x, y - 30
-                    | _ -> x, y - 10
-                | Moving Left ->
-                    match action with
-                    | Some Slide -> x - 30, y
-                    | _ -> x - 10, y
-                | Moving Right ->
-                    match action with
-                    | Some Slide -> x + 30, y
-                    | _ -> x + 10, y
-
-            let (dx, dy) = Position.getClampPos (dx, dy) maxXY
-
-            player
-            <~= (fun player -> { player with pos = { x = dx; y = dy } })
-
-            $"left: {dx}px; top: {dy}px;")
 
     let classes =
         (PlayerActions, status) ||> Observable.zip
@@ -76,15 +44,9 @@ let element maxLife (player: IStore<Player>) =
 
             $"player slime {status} {actions}")
 
-    let statusSub =
-        PlayerActions.Subscribe
-            (fun action ->
-                player
-                <~= (fun player -> { player with action = action }))
-
     Html.div [
-        disposeOnUnmount [ statusSub ]
+        disposeOnUnmount [ player ]
         Bind.attr ("class", classes)
-        Bind.attr ("style", playerPos)
+        Bind.attr ("style", position)
         Healthbar.element maxLife life
     ]

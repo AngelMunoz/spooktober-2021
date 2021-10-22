@@ -88,15 +88,13 @@ let interWaveTemplate (props: IStore<Stage>, wave: int, player: IStore<Player>) 
 
         focusStage ()
 
-    Html.app [
-        Html.article [
-            class' "idle"
-            Html.button [
-                type' "button"
-                class' "nes-btn"
-                Html.text "Next Wave"
-                onClick onStart []
-            ]
+    Html.article [
+        class' "idle"
+        Html.button [
+            type' "button"
+            class' "nes-btn"
+            Html.text "Next Wave"
+            onClick onStart []
         ]
     ]
 
@@ -112,11 +110,9 @@ let element (props: IStore<Stage>) =
 
     let stageState = props .> (fun s -> s.state)
 
-    let gameTemplate player =
+    let gameTemplate (player: IStore<Player>) =
         Html.app [
-            on "keydown" tryMovePlayer [ PreventDefault ]
-            on "keyup" tryTrackAction [ PreventDefault ]
-            Player.element props.Value.maxLife player
+            Bind.el (player, Player.element props.Value.maxLife)
             Bind.each (Enemies, Store.make >> (Npc.element props.Value.maxLife))
             Bind.each (Allies, Store.make >> (Npc.element props.Value.maxLife))
 
@@ -232,6 +228,58 @@ let element (props: IStore<Stage>) =
                     player
             | None -> player)
 
+    let trackPlayer =
+        PlayerEventBus.OnMove
+            (fun event ->
+                match event.detail with
+                | Some (x, y) ->
+                    Fable.Core.JS.console.log (x, y)
+
+                    player
+                    <~= (fun player -> { player with pos = { x = x; y = y } })
+                | None -> ())
+
+    let statusSub =
+        PlayerActions.Subscribe
+            (fun action ->
+                player
+                <~= (fun player -> { player with action = action }))
+
+    let playerPos =
+        (props, ((PlayerActions, PlayerMovement) ||> Observable.zip))
+        ||> Observable.zip
+        |> Observable.subscribe
+            (fun (stage, (action, status)) ->
+                match stage.state with
+                | Wave _ ->
+                    let maxXY = Position.getMaxXY ()
+                    let x = player |-> (fun player -> player.pos.x)
+                    let y = player |-> (fun player -> player.pos.y)
+
+                    let dx, dy =
+                        match status with
+                        | None -> x, y
+                        | Some Down ->
+                            match action with
+                            | Some Slide -> x, y + 30
+                            | _ -> x, y + 10
+                        | Some Up ->
+                            match action with
+                            | Some Slide -> x, y - 30
+                            | _ -> x, y - 10
+                        | Some Left ->
+                            match action with
+                            | Some Slide -> x - 30, y
+                            | _ -> x - 10, y
+                        | Some Right ->
+                            match action with
+                            | Some Slide -> x + 30, y
+                            | _ -> x + 10, y
+
+                    let (dx, dy) = Position.getClampPos (dx, dy) maxXY
+                    PlayerEventBus.Move(dx, dy)
+                | _ -> ())
+
     Html.article [
         disposeOnUnmount [
             player
@@ -239,11 +287,16 @@ let element (props: IStore<Stage>) =
             actionMonitor
             enemyMonitor
             waveMonitor
+            trackPlayer
+            statusSub
+            playerPos
         ]
         Attr.tabIndex 0
         class' "pos-stage"
         on "on-npc-attack" damagePlayer []
         on "on-npc-heal" healPlayer []
+        on "keydown" tryMovePlayer [ PreventDefault ]
+        on "keyup" tryTrackAction [ PreventDefault ]
         Bind.el (
             stageState,
             fun state ->

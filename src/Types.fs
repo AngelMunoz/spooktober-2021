@@ -4,6 +4,7 @@ open Fable.Core
 
 type Pos = { x: int; y: int }
 
+
 type NpcKind =
     | Enemy
     | Ally
@@ -64,3 +65,7 @@ type Player =
     { life: int
       action: PlayerAction option
       pos: Pos }
+
+type PlayerStatus =
+    | Idle
+    | Moving of Movement

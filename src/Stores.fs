@@ -1,7 +1,15 @@
 module Stores
 
+open System
+open Browser.Types
+open Fable.Core
 open Sutil
+open Sutil.DOM
 open Types
+
+
+[<Emit("new EventTarget()")>]
+let makeEventTarget () : EventTarget = jsNative
 
 let StageStore =
     Store.make (
@@ -16,6 +24,26 @@ let Allies = Store.make []
 
 let PlayerMovement: IStore<Movement option> = Store.make None
 let PlayerActions: IStore<PlayerAction option> = Store.make None
+
+let private playerBus = makeEventTarget ()
+
+type PlayerEventBus() =
+
+    static member OnMove(onMove: CustomEvent<int * int> -> unit) =
+        let cb (event: Event) = onMove (event :?> CustomEvent<int * int>)
+        playerBus.addEventListener ("on-player-move", cb)
+
+        { new IDisposable with
+            member _.Dispose() =
+                playerBus.removeEventListener ("on-player-move", cb) }
+
+    static member Move(x: int, y: int) =
+        CustomDispatch.toCustomEvent [
+            Bubbles true
+            Composed true
+            (x, y) |> Some |> Detail
+        ]
+        |> dispatchCustom playerBus "on-player-move"
 
 module Game =
     let private cleanNpcs () =

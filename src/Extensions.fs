@@ -2,6 +2,7 @@
 module Extensions
 
 open System
+open Sutil
 
 [<RequireQualifiedAccess>]
 module Timing =
@@ -48,3 +49,11 @@ module Position =
             else y
 
         (x, y)
+
+let throttle (fn: 'T -> unit) (delay: int) =
+    let mutable lastCalled = 0L
+    (fun args ->
+        let now = DateTime.Now.Ticks
+        if (now - lastCalled > (int64 delay) ) then
+            lastCalled <- now
+            fn args)
