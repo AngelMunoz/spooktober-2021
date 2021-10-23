@@ -39,6 +39,11 @@ footer {
   margin: auto;
 }
 
+.idle p {
+  text-align: center;
+  
+}
+
 @media all and (min-width: 768px) {
   .pos-stage {
     height: 480px;
