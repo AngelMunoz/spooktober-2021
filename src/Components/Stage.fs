@@ -59,14 +59,44 @@ let private tryTrackAction (event: Event) =
 [<Emit("document.querySelector('.pos-stage')?.focus()")>]
 let focusStage () : unit = jsNative
 
-let startGameTemplate props =
+let startGameTemplate (props: IStore<Stage>) (player: IStore<Player option>) =
     let onStart (e: Event) =
         Game.StartWave 0
         focusStage ()
 
+    player
+    <~ ({ life = props.Value.maxLife
+          action = None
+          pos = { x = 0; y = 0 } }
+        |> Some)
+
     Html.app [
         Html.article [
             class' "idle"
+            Html.p [
+                Html.text "Hello! this is a simple'ish game with"
+                Html.a [
+                    Attr.href "https://fsharp.org/"
+                    Html.text " F#"
+                ]
+                Html.text " and "
+                Html.a [
+                    Attr.href "https://sutil.dev"
+                    Html.text " Sutil"
+                ]
+            ]
+            Html.section [
+                Html.p
+                    """
+                    Try to remove all of the enemy slimes which are yellow colour,
+                    On a Pc use the keyboard arrows to move, on mobile use the pad below
+                    """
+                Html.ul [
+                    Html.li "Shift - Red - Attack"
+                    Html.li "Ctrl - White - Defend"
+                    Html.li "Alt - Green - Run"
+                ]
+            ]
             Html.button [
                 type' "button"
                 class' "nes-btn"
@@ -76,15 +106,23 @@ let startGameTemplate props =
         ]
     ]
 
-let interWaveTemplate (props: IStore<Stage>, wave: int, player: IStore<Player>) =
+let interWaveTemplate (props: IStore<Stage>, wave: int, player: IStore<Player option>) =
     let onStart (e: Event) =
         Game.NextWave wave
 
         player
         <~= (fun player ->
-            { player with
-                  pos = { x = 0; y = 0 }
-                  action = None })
+            match player with
+            | None ->
+                { life = props.Value.maxLife
+                  action = None
+                  pos = { x = 0; y = 0 } }
+                |> Some
+            | Some player ->
+                { player with
+                      action = None
+                      pos = { x = 0; y = 0 } }
+                |> Some)
 
         focusStage ()
 
@@ -104,28 +142,33 @@ let gameOverTemplate props =
         Html.text "Game Over"
     ]
 
-
-
 let element (props: IStore<Stage>) =
 
     let stageState = props .> (fun s -> s.state)
 
-    let gameTemplate (player: IStore<Player>) =
+    let gameTemplate (player: IStore<Player option>) =
         Html.app [
-            Bind.el (player, Player.element props.Value.maxLife)
+            Bind.el (
+                player,
+                fun player ->
+                    match player with
+                    | Some player -> Player.element props.Value.maxLife player
+                    | None -> Html.none
+            )
             Bind.each (Enemies, Store.make >> (Npc.element props.Value.maxLife))
             Bind.each (Allies, Store.make >> (Npc.element props.Value.maxLife))
 
             ]
 
-    let player =
-        Store.make
-            { life = props.Value.maxLife
-              action = None
-              pos = { x = 0; y = 0 } }
+    let player = Store.make None
 
     let lifeSub =
-        player.Subscribe(fun player -> if player.life <= 0 then Game.GameOver())
+        player
+        |> Observable.filter Option.isSome
+        |> Observable.subscribe
+            (fun player ->
+                if player.Value.life <= 0 then
+                    Game.GameOver())
 
     let enemyMonitor =
         (Enemies, StageStore)
@@ -150,32 +193,45 @@ let element (props: IStore<Stage>) =
                     if (number / 5) % 2 = 0 then
                         player
                         <~= (fun player ->
-                            { player with
-                                  life = props.Value.maxLife })
+                            match player with
+                            | Some player ->
+                                { player with
+                                      life = props.Value.maxLife }
+                                |> Some
+                            | None -> None)
                 | _ -> ())
 
     let actionMonitor =
-        (player .> (fun p -> p.action, p.pos))
+        (player
+         .> (fun p -> p |> Option.map (fun p -> p.action, p.pos)))
         |> Observable.subscribe
-            (fun (action, pos) ->
-                let playerPos = (pos.x, pos.y)
+            (fun values ->
+                match values with
+                | Some (action, pos) ->
+                    let playerPos = (pos.x, pos.y)
 
-                match action with
-                | Some Attack ->
-                    Enemies
-                    <~= (fun enemies ->
-                        enemies
-                        |> List.map
-                            (fun npc ->
-                                let npcPos = (npc.pos.x, npc.pos.y)
+                    let attackNpc (npc: Npc) =
+                        let npcPos = (npc.pos.x, npc.pos.y)
 
-                                if Position.isWithinDistance playerPos 25 npcPos then
-                                    { npc with
-                                          life = npc.life |> Option.map (fun life -> life - 100) }
-                                else
-                                    npc)
-                        |> List.filter (fun npc -> (npc.life |> Option.defaultValue 0) > 0))
-                | _ -> ())
+                        if Position.isWithinDistance playerPos 50 npcPos then
+                            { npc with
+                                  life = npc.life |> Option.map (fun life -> life - 100) }
+                        else
+                            npc
+
+                    let filterAlive (npc: Npc) =
+                        let npcLife = npc.life |> Option.defaultValue 0
+                        npcLife > 0
+
+                    match action with
+                    | Some Attack ->
+                        Enemies
+                        <~= (fun enemies ->
+                            enemies
+                            |> List.map attackNpc
+                            |> List.filter filterAlive)
+                    | _ -> ()
+                | None -> ())
 
     let damagePlayer (e: Event) =
         let e = (e :?> CustomEvent<{| position: Pos |}>)
@@ -184,20 +240,24 @@ let element (props: IStore<Stage>) =
         <~= (fun player ->
             match e.detail with
             | Some npcPos ->
-                let playerPos = (player.pos.x, player.pos.y)
-                let npcPos = (npcPos.position.x, npcPos.position.y)
+                match player with
+                | Some player ->
+                    let playerPos = (player.pos.x, player.pos.y)
+                    let npcPos = (npcPos.position.x, npcPos.position.y)
 
-                if Position.isWithinDistance playerPos 25 npcPos then
-                    let damage =
-                        match player.action with
-                        | Some Defend -> 100 - 50
-                        | Some Slide -> 100 - 10
-                        | _ -> 100
+                    if Position.isWithinDistance playerPos 50 npcPos then
+                        let damage =
+                            match player.action with
+                            | Some Defend -> 100 - 50
+                            | Some Slide -> 100 - 10
+                            | _ -> 100
 
-                    { player with
-                          life = player.life - damage }
-                else
-                    player
+                        { player with
+                              life = player.life - damage }
+                    else
+                        player
+                    |> Some
+                | None -> None
             | None -> player)
 
     let healPlayer (e: Event) =
@@ -207,25 +267,29 @@ let element (props: IStore<Stage>) =
         <~= (fun player ->
             match e.detail with
             | Some npcPos ->
-                let playerPos = (player.pos.x, player.pos.y)
-                let npcPos = (npcPos.position.x, npcPos.position.y)
+                match player with
+                | Some player ->
+                    let playerPos = (player.pos.x, player.pos.y)
+                    let npcPos = (npcPos.position.x, npcPos.position.y)
 
-                if Position.isWithinDistance playerPos 20 npcPos then
-                    let heal =
-                        match player.action with
-                        | Some Defend -> 100 + 25
-                        | Some Slide -> 100 - 25
-                        | _ -> 100
+                    if Position.isWithinDistance playerPos 35 npcPos then
+                        let heal =
+                            match player.action with
+                            | Some Defend -> 100 + 25
+                            | Some Slide -> 100 - 25
+                            | _ -> 100
 
-                    let life =
-                        if heal + player.life >= props.Value.maxLife then
-                            props.Value.maxLife
-                        else
-                            heal + player.life
+                        let life =
+                            if heal + player.life >= props.Value.maxLife then
+                                props.Value.maxLife
+                            else
+                                heal + player.life
 
-                    { player with life = life }
-                else
-                    player
+                        { player with life = life }
+                    else
+                        player
+                    |> Some
+                | None -> None
             | None -> player)
 
     let trackPlayer =
@@ -233,17 +297,19 @@ let element (props: IStore<Stage>) =
             (fun event ->
                 match event.detail with
                 | Some (x, y) ->
-                    Fable.Core.JS.console.log (x, y)
-
                     player
-                    <~= (fun player -> { player with pos = { x = x; y = y } })
+                    <~= (fun player ->
+                        player
+                        |> Option.map (fun player -> { player with pos = { x = x; y = y } }))
                 | None -> ())
 
     let statusSub =
         PlayerActions.Subscribe
             (fun action ->
                 player
-                <~= (fun player -> { player with action = action }))
+                <~= (fun player ->
+                    player
+                    |> Option.map (fun player -> { player with action = action })))
 
     let playerPos =
         (props, ((PlayerActions, PlayerMovement) ||> Observable.zip))
@@ -253,8 +319,13 @@ let element (props: IStore<Stage>) =
                 match stage.state with
                 | Wave _ ->
                     let maxXY = Position.getMaxXY ()
-                    let x = player |-> (fun player -> player.pos.x)
-                    let y = player |-> (fun player -> player.pos.y)
+
+                    let x, y =
+                        player
+                        |-> (fun player ->
+                            player
+                            |> Option.map (fun p -> p.pos.x, p.pos.y)
+                            |> Option.defaultValue (0, 0))
 
                     let dx, dy =
                         match status with
@@ -301,7 +372,7 @@ let element (props: IStore<Stage>) =
             stageState,
             fun state ->
                 match state with
-                | Start -> startGameTemplate props
+                | Start -> startGameTemplate props player
                 | GameOver -> gameOverTemplate props
                 | InterWave wave -> interWaveTemplate (props, wave, player)
                 | Wave _ -> gameTemplate player
