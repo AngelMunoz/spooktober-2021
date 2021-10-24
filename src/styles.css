@@ -31,17 +31,18 @@ footer {
   background-color: #1c1c1c;
 }
 
-.idle {
+.idle, .game-over {
   display: flex;
   flex-direction: column;
   align-items: center;
   align-content: center;
   margin: auto;
+  z-index: 3;
+  color: #F1F1F1;
 }
 
-.idle p {
+.idle p, .game-over p {
   text-align: center;
-  
 }
 
 @media all and (min-width: 768px) {
@@ -55,7 +56,16 @@ footer {
   .pos-stage {
     height: 600px;
     width: 800px;
+    transform: scale(1.28);
   }
+}
+
+.wave-indicator {
+  display: flex;
+  
+        JS.setTimeout (fun _ -> Allies <~ []) (Random.randomInt 4000 5000)
+        |> ignoremargin: auto auto 0;
+  color: floralwhite;
 }
 
 .slime {
