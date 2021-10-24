@@ -14,7 +14,8 @@ let element (max: int) (health: IObservable<int>) =
         class' "healthbar"
         Attr.min 0
         Attr.max max
-        Attr.low (((max |> float) * 0.20))
-        Attr.high (((max |> float) * 0.75))
+        Attr.low ((max |> float) * 0.25)
+        Attr.high ((max |> float) * 0.60)
+        Attr.optimum ((max |> float) * 0.90)
         Bind.attr ("value", health)
     ]
