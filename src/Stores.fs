@@ -4,6 +4,7 @@ open System
 open Browser.Types
 open Fable.Core
 open Sutil
+open Sutil
 open Sutil.DOM
 open Types
 
@@ -30,7 +31,9 @@ let private playerBus = makeEventTarget ()
 type PlayerEventBus() =
 
     static member OnMove(onMove: CustomEvent<int * int> -> unit) =
-        let cb (event: Event) = onMove (event :?> CustomEvent<int * int>)
+        let cb (event: Event) =
+            onMove (event :?> CustomEvent<int * int>)
+
         playerBus.addEventListener ("on-player-move", cb)
 
         { new IDisposable with
@@ -73,7 +76,10 @@ module Game =
         let enemies =
             Random.getRandomNpcs (wave + 1 * 5) Enemy
 
-        let allies = Random.getRandomNpcs (wave + 1 / 2) Ally
+        let allies =
+                if wave >= 8 then
+                    Random.getRandomNpcs (wave + 1 / 2) Ally
+                else []
 
         Enemies <~ enemies
         Allies <~ allies

@@ -57,13 +57,12 @@ let private tryTrackAction (event: Event) =
     | _ -> ()
 
 [<Emit("document.querySelector('.pos-stage')?.focus()")>]
-let focusStage () : unit = jsNative
+let private focusStage () : unit = jsNative
 
-let startGameTemplate (props: IStore<Stage>) (player: IStore<Player option>) =
+let private startGameTemplate (props: IStore<Stage>) (player: IStore<Player option>) =
     let onStart (e: Event) =
         Game.StartWave 0
         focusStage ()
-
     player
     <~ ({ life = props.Value.maxLife
           action = None
@@ -106,7 +105,7 @@ let startGameTemplate (props: IStore<Stage>) (player: IStore<Player option>) =
         ]
     ]
 
-let interWaveTemplate (props: IStore<Stage>, wave: int, player: IStore<Player option>) =
+let private interWaveTemplate (props: IStore<Stage>, wave: int, player: IStore<Player option>) =
     let onStart (e: Event) =
         Game.NextWave wave
 
@@ -136,14 +135,26 @@ let interWaveTemplate (props: IStore<Stage>, wave: int, player: IStore<Player op
         ]
     ]
 
-let gameOverTemplate props =
-    Html.app [
-        class' "pos-stage game-over"
-        Html.text "Game Over"
+let private gameOverTemplate props lastWave =
+    let onStartOver (e: Event) =
+        Game.SetStart()
+        Game.NextWave 0
+        
+    Html.article [
+        class' "game-over"
+        Html.h1 "Game Over!"
+        Html.p $"You made it to wave: %i{lastWave}"
+        Html.button [
+            type' "button"
+            class' "nes-btn"
+            Html.text "Start Over"
+            onClick onStartOver []
+        ]
     ]
+    
 
 let element (props: IStore<Stage>) =
-
+    let mutable lastWave = 1
     let stageState = props .> (fun s -> s.state)
 
     let gameTemplate (player: IStore<Player option>) =
@@ -159,16 +170,33 @@ let element (props: IStore<Stage>) =
             Bind.each (Allies, Store.make >> (Npc.element props.Value.maxLife))
 
             ]
-
+    
+    let waveTpl (wave: int option) =
+        Html.section [
+            class' "wave-indicator"
+            match wave with
+            | Some wave ->
+                Html.p $"Current Wave: %i{wave}"
+            | None -> Html.none
+        ]
+    
     let player = Store.make None
 
     let lifeSub =
         player
         |> Observable.filter Option.isSome
         |> Observable.subscribe
-            (fun player ->
-                if player.Value.life <= 0 then
-                    Game.GameOver())
+            (fun currentPlayer ->
+                match currentPlayer with
+                | Some pl ->
+                    if pl.life <= 0 then
+                        player <~ None
+                        let state = props |-> (fun p -> p.state)
+                        match state with
+                        | Wave number -> lastWave <- number
+                        | _ -> ()
+                        Game.GameOver()
+                | None -> ())
 
     let enemyMonitor =
         (Enemies, StageStore)
@@ -350,7 +378,7 @@ let element (props: IStore<Stage>) =
                     let (dx, dy) = Position.getClampPos (dx, dy) maxXY
                     PlayerEventBus.Move(dx, dy)
                 | _ -> ())
-
+    let wave = props .> (fun props -> match props.state with | Wave num -> Some num | _ -> None)
     Html.article [
         disposeOnUnmount [
             player
@@ -368,12 +396,14 @@ let element (props: IStore<Stage>) =
         on "on-npc-heal" healPlayer []
         on "keydown" tryMovePlayer [ PreventDefault ]
         on "keyup" tryTrackAction [ PreventDefault ]
+        
+        Bind.el(wave, waveTpl)
         Bind.el (
             stageState,
             fun state ->
                 match state with
                 | Start -> startGameTemplate props player
-                | GameOver -> gameOverTemplate props
+                | GameOver -> gameOverTemplate props lastWave
                 | InterWave wave -> interWaveTemplate (props, wave, player)
                 | Wave _ -> gameTemplate player
         )
